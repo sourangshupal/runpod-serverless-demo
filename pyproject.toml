@@ -1,0 +1,16 @@
+[project]
+name = "runpod-demo"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "httpx==0.28.1",
+    "python-dotenv==1.2.3",
+    "rich==15.0.0",
+    "runpod==1.12.0",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter==1.1.1",
+    "nbformat==5.11.1",
+]
