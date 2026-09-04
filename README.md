@@ -1,24 +1,55 @@
-# RunPod Serverless Demo
+# 🚀 RunPod Serverless GPU Demo
 
-Codebase for the RunPod Serverless walkthrough (sponsored YouTube video, brief #9798).
-It proves the story end to end: **sign up → deploy an endpoint → send traffic → pay per second.**
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
+![uv](https://img.shields.io/badge/uv-0.12-6C4CF1?logo=astral&logoColor=white)
+![RunPod](https://img.shields.io/badge/RunPod-Serverless-7C3AED)
+![httpx](https://img.shields.io/badge/httpx-0.28-0891B2?logo=python&logoColor=white)
 
-## What's here
+A minimal, reproducible demonstration of **queue-based serverless GPU inference** on
+[RunPod Serverless](https://www.runpod.io/product/serverless): how a request flows from a
+Python client through the endpoint queue to a GPU worker, what cold starts actually cost,
+how the worker pool scales under concurrent load, and what per-second billing looks like
+in practice.
 
-| Path | Purpose | Video segment |
-|---|---|---|
-| `scripts/create_endpoint.py` | Create a Serverless endpoint via the REST API (`POST /v1/endpoints`) | 13:30–14:30 |
-| `scripts/smoke_test.py` | Health check → cold start (`/run` + poll) → warm request (`/runsync`) with delayTime comparison and cost estimate | 14:30–15:30 |
-| `scripts/burst_test.py` | 20 concurrent requests while sampling `/health` — watch workers scale in real time | 15:30–16:30 |
-| `notebooks/runpod_serverless_demo.ipynb` | Final narrated notebook for the on-camera walkthrough | full demo |
-| `scripts/build_notebook.py` | Regenerates the notebook from source | — |
-| `.env.example` | Config template | — |
+## 📖 What this does
 
-Sign-up happens in the Runpod console on camera; the endpoint can then be deployed
-**either** on camera via Serverless → New Endpoint **or** with `create_endpoint.py` —
-whichever reads better on video.
+RunPod Serverless serves a **pre-trained model behind an HTTP API** — inference, not
+training. You deploy a container (a Hub template, or your own handler function), and
+RunPod runs it on GPUs only while requests are in flight:
 
-## Setup
+- 🧊 **Cold start measurement** — submit a job to an idle endpoint (`POST /run`), poll
+  `GET /status/{jobId}`, and watch `delayTime`: worker provisioning + model load into VRAM.
+- 🔥 **Warm request** — the same call via `POST /runsync` against an active worker;
+  compare `delayTime` cold vs warm (with FlashBoot enabled, sub-200 ms starts).
+- 💥 **Burst load test** — fire N concurrent requests with `asyncio` + `httpx`, record
+  per-request `delayTime` / `executionTime` / wall time, and sample `GET /health` once per
+  second to watch the worker pool scale.
+- 💸 **Cost math** — worker-seconds × GPU hourly rate (or the per-job `cost` field some
+  endpoints report in their output) → the actual bill for the session.
+
+### The request lifecycle
+
+![Architecture](docs/architecture.svg)
+
+## 📁 Project structure
+
+```
+runpod-demo/
+├── 📄 pyproject.toml / uv.lock        # pinned dependencies (uv-managed)
+├── 🔐 .env.example                    # RUNPOD_API_KEY, ENDPOINT_ID, GPU_HOURLY_USD
+├── 📜 README.md
+├── 📊 docs/
+│   └── architecture.svg               # request-lifecycle diagram
+├── 🗂️ scripts/
+│   ├── create_endpoint.py             # deploy an endpoint via POST /v1/endpoints (REST)
+│   ├── smoke_test.py                  # health → cold start → warm request → cost
+│   ├── burst_test.py                  # N concurrent requests + /health scaling watch
+│   └── build_notebook.py              # regenerates the notebook from source
+└── 📓 notebooks/
+    └── runpod_serverless_demo.ipynb   # narrated end-to-end walkthrough
+```
+
+## ⚙️ Setup
 
 Requires [uv](https://docs.astral.sh/uv/).
 
@@ -29,38 +60,38 @@ cp .env.example .env
 
 Fill in `.env`:
 
-- `RUNPOD_API_KEY` — create in the RunPod console: **Settings → API Keys → Create API Key**.
-  Use a **Restricted** key scoped to this endpoint only (least privilege).
-- `ENDPOINT_ID` — the ID of your Serverless endpoint (deploy from a Hub template, e.g. a
-  vLLM text-generation worker; enable FlashBoot, set min workers to 0).
-- `GPU_HOURLY_USD` — the hourly rate of your endpoint's GPU tier (see
-  [serverless pricing](https://www.runpod.io/pricing)); used only for the cost estimate printout.
+| Variable | What |
+|---|---|
+| `RUNPOD_API_KEY` | Console → **Settings → API Keys → Create** (use a *Restricted* key, scoped to one endpoint) |
+| `ENDPOINT_ID` | Your queue-based endpoint, or a Runpod-hosted public model endpoint (e.g. `black-forest-labs-flux-1-schnell`) — the API is identical |
+| `GPU_HOURLY_USD` | Hourly rate of your endpoint's GPU tier (used only for cost estimates) |
 
-## Run
+## ▶️ Usage
 
 ```bash
-uv run scripts/create_endpoint.py --template-id <HUB_TEMPLATE_ID>   # optional: deploy via API
-uv run scripts/smoke_test.py                    # single-request proof, cold vs warm
+uv run scripts/create_endpoint.py --template-id <HUB_TEMPLATE_ID>   # deploy via API (optional)
+uv run scripts/smoke_test.py                    # single-request proof: cold vs warm
 uv run scripts/burst_test.py                    # 20 concurrent requests + scaling watch
 uv run scripts/burst_test.py --requests 40 --concurrency 20
+uv run jupyter notebook                         # open notebooks/runpod_serverless_demo.ipynb
 ```
 
-`ENDPOINT_ID` can be any queue-based endpoint you deployed, **or** a Runpod-hosted
-[public model endpoint](https://docs.runpod.io/overview) (e.g. `black-forest-labs-flux-1-schnell`)
-for zero-setup testing — the API is identical. Public endpoints don't expose `/health`;
-your own endpoints do.
+## 🔌 API surface used
 
-To watch the notebook: `uv run jupyter notebook` (or `jupyter lab`), open
-`notebooks/runpod_serverless_demo.ipynb`.
+| Operation | Route | Used for |
+|---|---|---|
+| Submit async job | `POST /v2/{id}/run` | Cold-start test (polling-friendly) |
+| Submit sync job | `POST /v2/{id}/runsync?wait=ms` | Warm requests (blocks up to 300 s) |
+| Job status | `GET /v2/{id}/status/{jobId}` | IN_QUEUE → IN_PROGRESS → COMPLETED |
+| Endpoint health | `GET /v2/{id}/health` | Live worker/queue counts (own endpoints only) |
 
-## Notes
+Full reference: [RunPod Serverless API docs](https://docs.runpod.io/serverless/endpoints/operation-reference).
 
-- **Cold start can take minutes** (container image pull + model load). The smoke test's
-  first request uses `/run` + status polling with a 10-minute budget — this is normal.
-  Steady-state requests use `/runsync`.
-- `delayTime` in the API response = time spent queued + starting a worker (the cold-start
-  evidence); `executionTime` = actual GPU work.
-- When an endpoint reports a per-job `cost` in its output, the scripts print that as the
-  authoritative billed cost; otherwise they estimate from worker time × GPU hourly rate.
-- Endpoint *creation* is available both ways: on camera in the console, or scripted via
-  `scripts/create_endpoint.py` (needs a Hub template ID).
+## 🧾 Notes
+
+- ⏳ **Cold starts are minutes-scale** on first deploy (container pull + model load) — the
+  scripts use `/run` + polling with a 10-minute budget for that reason.
+- 🧮 `delayTime` = queue wait + worker start; `executionTime` = pure GPU work. Idle cost
+  lives entirely in `delayTime` — drive it to zero and you drive waste to zero.
+- 🔓 Public model endpoints don't expose `/health`; your own endpoints do.
+- 📓 Edit `scripts/build_notebook.py` (not the `.ipynb` directly) to change the notebook.
