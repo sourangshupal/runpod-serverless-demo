@@ -103,7 +103,14 @@ nb.cells = [
         "        assert job['status'] not in ('FAILED', 'CANCELLED'), job\n"
         "        time.sleep(2)\n"
         "\n"
-        "print(f\"cold start delayTime: {cold['delayTime']} ms, executionTime: {cold['executionTime']} ms\")"
+        "print(f\"cold start delayTime: {cold['delayTime']} ms, executionTime: {cold['executionTime']} ms\")\n"
+        "\n"
+        "from IPython.display import Image as IPyImage, display\n"
+        "\n"
+        "if isinstance(cold.get('output'), dict) and isinstance(cold['output'].get('result'), str):\n"
+        "    display(IPyImage(url=cold['output']['result']))\n"
+        "else:\n"
+        "    print('Output:', json.dumps(cold['output'])[:300])"
     ),
     md(
         "## 4. Warm request — the FlashBoot difference\n"
@@ -127,7 +134,10 @@ nb.cells = [
         "print(f\"cold delayTime:    {cold['delayTime']:>6} ms\")\n"
         "print(f\"difference:        {cold['delayTime'] - warm['delayTime']:>6} ms faster when warm\")\n"
         "print()\n"
-        "print('Output:', json.dumps(warm['output'])[:300])"
+        "print('Output:', json.dumps(warm['output'])[:200])\n"
+        "print()\n"
+        "if isinstance(warm.get('output'), dict) and isinstance(warm['output'].get('result'), str):\n"
+        "    display(IPyImage(url=warm['output']['result']))"
     ),
     md(
         "## 5. Burst — 20 concurrent requests\n"
