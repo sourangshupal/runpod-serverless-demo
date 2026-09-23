@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "The GPU Cloud Market in 2026 — Three Camps, One Gap",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [1180, 540]
+  },
+  "components": [
+    { "id": "hyperscalers", "type": "cloud", "label": "Hyperscalers", "sublabel": "AWS · GCP · Azure", "pos": [60, 90], "size": [250, 72], "tag": "huge scale, enterprise-grade" },
+    { "id": "neoclouds", "type": "cloud", "label": "Neoclouds", "sublabel": "big GPU capacity companies", "pos": [60, 255], "size": [250, 72], "tag": "real hardware, contracts only" },
+    { "id": "pointsolutions", "type": "backend", "label": "Point Solutions", "sublabel": "one narrow thing, done nicely", "pos": [60, 420], "size": [250, 72], "tag": "great DX, one workload" },
+    { "id": "runpod", "type": "cloud", "label": "RunPod", "sublabel": "the AI Developer Cloud", "pos": [830, 255], "size": [260, 76], "tag": "self-serve · full lifecycle · no lock-in", "brand": { "url": "https://www.runpod.io/product/serverless", "sha256": "633d808bb55ef6e093c91a6ab1c0aad340f83ba71fb66fd72245d39f9c53418a" } }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Camp 1", "wraps": ["hyperscalers"] },
+    { "kind": "region", "label": "Camp 2", "wraps": ["neoclouds"] },
+    { "kind": "region", "label": "Camp 3", "wraps": ["pointsolutions"] },
+    { "kind": "region", "label": "The Gap", "wraps": ["runpod"] }
+  ],
+  "connections": [
+    { "id": "gap-1", "from": "hyperscalers", "to": "runpod", "label": "IAM sprawl, lock-in hooks", "variant": "dashed" },
+    { "id": "gap-2", "from": "neoclouds", "to": "runpod", "label": "no self-serve for small teams", "variant": "dashed", "labelDy": 12 },
+    { "id": "gap-3", "from": "pointsolutions", "to": "runpod", "label": "not the full lifecycle", "variant": "dashed" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Camp 1 — Hyperscalers", "items": ["Pricing designed for general-purpose enterprise compute", "Consoles not built to run a PyTorch model in five minutes", "Every proprietary service is a hook that makes leaving harder"] },
+    { "dot": "amber", "title": "Camp 2 — Neoclouds", "items": ["Real hardware, but contract-heavy and enterprise-only", "No self-serve: solo devs and startups don't get a callback"] },
+    { "dot": "violet", "title": "Camp 3 — Point solutions", "items": ["Really nice developer experience", "Each one does one narrow thing — one workload, not the lifecycle"] },
+    { "dot": "emerald", "title": "The gap — RunPod's claim", "items": ["Self-serve access, no sales call", "Full lifecycle coverage, developer-native", "No lock-in"] }
+  ]
+}

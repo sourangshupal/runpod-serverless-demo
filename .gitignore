@@ -14,7 +14,10 @@ __pycache__/
 
 # Campaign materials — confidential per brief #9798, not for the public repo
 Brief - 9798 - Krish Naik - Runpod  - Sign Ups.pdf
+runpod-video-script.md
+
+# Local archive — campaign files kept locally, never pushed
+archive/
 
 # OS
 .DS_Store
-runpod-video-script.md

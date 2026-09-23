@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "RunPod Serverless — One Request's Journey",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "viewBox": [1240, 590]
+  },
+  "components": [
+    { "id": "client", "type": "external", "label": "Your App", "sublabel": "Python REST client", "pos": [40, 300], "size": [130, 64], "tag": "POST /v2/{id}/runsync" },
+    { "id": "endpoint", "type": "cloud", "label": "Serverless Endpoint", "sublabel": "api.runpod.ai/v2/{id}", "pos": [270, 300], "size": [160, 64], "tag": "GPU tier + scaling config", "brand": { "url": "https://www.runpod.io/product/serverless", "sha256": "633d808bb55ef6e093c91a6ab1c0aad340f83ba71fb66fd72245d39f9c53418a" } },
+    { "id": "queue", "type": "messagebus", "label": "Request Queue", "sublabel": "jobs wait here", "pos": [530, 300], "size": [140, 64] },
+    { "id": "worker", "type": "backend", "label": "GPU Worker Pool", "sublabel": "scales 0 → hundreds", "pos": [770, 300], "size": [170, 64], "tag": "min workers: 0" },
+    { "id": "handler", "type": "backend", "label": "Handler Function", "sublabel": "your Python, containerized", "pos": [1040, 300], "size": [170, 64], "tag": "def handler(event)" },
+    { "id": "flashboot", "type": "cloud", "label": "FlashBoot", "sublabel": "sub-200 ms cold start", "pos": [770, 70], "size": [170, 64], "tag": "cold starts solved" },
+    { "id": "billing", "type": "cloud", "label": "Per-Second Billing", "sublabel": "pay only while workers run", "pos": [770, 450], "size": [170, 64], "tag": "$0 when idle" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "RunPod Cloud — Serverless", "wraps": ["endpoint", "queue", "worker", "handler", "flashboot", "billing"] }
+  ],
+  "connections": [
+    { "id": "send-request", "from": "client", "to": "endpoint", "label": "POST /runsync", "variant": "emphasis" },
+    { "id": "enqueue", "from": "endpoint", "to": "queue", "label": "enqueue job" },
+    { "id": "dispatch", "from": "queue", "to": "worker", "label": "dispatch" },
+    { "id": "execute", "from": "worker", "to": "handler", "label": "executes" },
+    { "id": "flashboot-edge", "from": "flashboot", "to": "worker", "label": "worker ready in < 200 ms", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "bill-edge", "from": "worker", "to": "billing", "label": "worker-seconds only", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Endpoints", "items": ["The URL your app sends requests to", "Each endpoint has its own GPU tier + scaling settings"] },
+    { "dot": "emerald", "title": "Workers", "items": ["Containers that execute your code", "Started when requests arrive, killed when traffic stops", "Scale from zero workers to hundreds"] },
+    { "dot": "violet", "title": "Handler functions", "items": ["Plain Python: request input in, result JSON out", "Result returns to your app through the endpoint", "No config files, no warm-up logic, no DevOps ticket"] },
+    { "dot": "amber", "title": "FlashBoot", "items": ["Sub-200-millisecond cold starts", "We test it live on camera in the demo"] }
+  ]
+}

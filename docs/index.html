@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RunPod Serverless Demo — Diagrams</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 3rem 1.5rem;
+      font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #0d1117; color: #e6edf3;
+    }
+    main { max-width: 860px; margin: 0 auto; }
+    h1 { font-size: 1.6rem; margin: 0 0 .5rem; }
+    p.sub { color: #8b949e; margin: 0 0 2.5rem; }
+    a.card {
+      display: block; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem;
+      border: 1px solid #30363d; border-radius: 12px;
+      background: #161b22; color: inherit; text-decoration: none;
+      transition: border-color .15s ease;
+    }
+    a.card:hover { border-color: #7c3aed; }
+    a.card h2 { margin: 0 0 .4rem; font-size: 1.15rem; color: #a78bfa; }
+    a.card p { margin: 0; color: #8b949e; font-size: .95rem; }
+    .pngs { margin-top: .8rem; font-size: .85rem; color: #6e7681; }
+    .pngs a { color: #58a6ff; margin-right: 1rem; }
+    footer { margin-top: 3rem; font-size: .8rem; color: #484f58; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>🚀 RunPod Serverless Demo — Interactive Diagrams</h1>
+    <p class="sub">Architecture diagrams for the queue-based serverless GPU inference demo. Click a card to open the interactive version.</p>
+
+    <a class="card" href="./runpod-serverless-architecture.html">
+      <h2>⚡ RunPod Serverless — One Request's Journey</h2>
+      <p>How a single request flows from the Python client through the endpoint queue to a
+         GPU worker: cold start vs warm, <code>delayTime</code> vs <code>executionTime</code>,
+         per-second billing, scale to zero.</p>
+      <p class="pngs">
+        PNG:
+        <a href="./runpod-serverless-architecture.visual-check.2048x1320.light.png">light 2048px</a>
+        <a href="./runpod-serverless-architecture.visual-check.2048x1320.dark.png">dark 2048px</a>
+        <a href="./runpod-serverless-architecture.visual-check.1440x900.light.png">light 1440px</a>
+        <a href="./runpod-serverless-architecture.visual-check.1440x900.dark.png">dark 1440px</a>
+      </p>
+    </a>
+
+    <a class="card" href="./gpu-cloud-three-camps.html">
+      <h2>🗺️ The GPU Cloud Market in 2026 — Three Camps, One Gap</h2>
+      <p>Hyperscalers vs neoclouds vs point solutions, and the gap RunPod's
+         AI Developer Cloud position fills: self-serve, full lifecycle, no lock-in.</p>
+      <p class="pngs">
+        PNG:
+        <a href="./gpu-cloud-three-camps.visual-check.2048x1320.light.png">light 2048px</a>
+        <a href="./gpu-cloud-three-camps.visual-check.2048x1320.dark.png">dark 2048px</a>
+        <a href="./gpu-cloud-three-camps.visual-check.1440x900.light.png">light 1440px</a>
+        <a href="./gpu-cloud-three-camps.visual-check.1440x900.dark.png">dark 1440px</a>
+      </p>
+    </a>
+
+    <footer>Generated with Archify · served via GitHub Pages from <code>/docs</code></footer>
+  </main>
+</body>
+</html>

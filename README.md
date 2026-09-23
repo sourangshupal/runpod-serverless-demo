@@ -31,6 +31,20 @@ RunPod runs it on GPUs only while requests are in flight:
 
 ![Architecture](docs/architecture.svg)
 
+### 🗺️ Diagrams
+
+**Interactive versions** (GitHub Pages): **[diagram index](https://sourangshupal.github.io/runpod-serverless-demo/)** ·
+[One Request's Journey](https://sourangshupal.github.io/runpod-serverless-demo/runpod-serverless-architecture.html) ·
+[The GPU Cloud Market — Three Camps](https://sourangshupal.github.io/runpod-serverless-demo/gpu-cloud-three-camps.html)
+
+**RunPod Serverless — One Request's Journey:**
+![One Request's Journey](docs/runpod-serverless-architecture.visual-check.2048x1320.light.png)
+
+**The GPU Cloud Market in 2026 — Three Camps, One Gap:**
+![Three Camps](docs/gpu-cloud-three-camps.visual-check.2048x1320.light.png)
+
+Dark-mode PNGs and higher/lower resolutions live in [`docs/`](docs/index.html).
+
 ## 📁 Project structure
 
 ```
