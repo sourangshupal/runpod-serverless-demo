@@ -1,39 +1,39 @@
 """RunPod Serverless worker: FLUX.1-schnell text-to-image.
 
-The model is loaded once per worker boot (module level) — that load is the
-cold start the demo measures. Uses optimum-quanto fp8 storage quantization
-so schnell fits comfortably on 24GB GPUs (A5000/3090/4090), computing in bf16.
-HF cache lives on the network volume (HF_HOME) so cold starts after the
-first are disk-loads, not 23GB downloads.
+Design notes (learned from the first version):
+- runpod.serverless.start() must run immediately — RunPod kills containers
+  that don't handshake within its provisioning window. The model is therefore
+  loaded lazily on the first request (that load IS the cold start).
+- bf16 weights (~24GB) need a >=32GB GPU, so the endpoint is configured with
+  32/48GB GPU types in priority order. No fp8 quantization needed there,
+  which also makes the load faster.
 """
 
 import base64
 import io
-import os
+import threading
 import time
 
 import runpod
 import torch
-from diffusers import FluxPipeline, FluxTransformer2DModel
-from optimum.quanto import freeze, qfloat8, quantize
+from diffusers import FluxPipeline
 
-MODEL_ID = os.getenv("MODEL_ID", "black-forest-labs/FLUX.1-schnell")
+MODEL_ID = "black-forest-labs/FLUX.1-schnell"
 
-print(f"[worker] loading {MODEL_ID} ...", flush=True)
-t0 = time.time()
+_pipe = None
+_lock = threading.Lock()
 
-transformer = FluxTransformer2DModel.from_pretrained(
-    MODEL_ID, subfolder="transformer", torch_dtype=torch.bfloat16
-)
-quantize(transformer, qfloat8)  # fp8 storage, bf16 compute
-freeze(transformer)
 
-pipe = FluxPipeline.from_pretrained(
-    MODEL_ID, transformer=transformer, torch_dtype=torch.bfloat16
-)
-pipe.enable_model_cpu_offload()  # fits 24GB VRAM
-
-print(f"[worker] ready in {time.time() - t0:.1f}s", flush=True)
+def get_pipe():
+    global _pipe
+    with _lock:
+        if _pipe is None:
+            print(f"[worker] loading {MODEL_ID} ...", flush=True)
+            t0 = time.time()
+            _pipe = FluxPipeline.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
+            _pipe.to("cuda")
+            print(f"[worker] ready in {time.time() - t0:.1f}s", flush=True)
+    return _pipe
 
 
 def handler(event):
@@ -44,6 +44,7 @@ def handler(event):
     steps = int(inp.get("steps", 4))  # schnell is designed for 4 steps
     seed = int(inp.get("seed", 0))
 
+    pipe = get_pipe()
     generator = torch.Generator(device="cpu").manual_seed(seed)
     image = pipe(
         prompt=prompt,
