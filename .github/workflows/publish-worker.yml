@@ -32,6 +32,8 @@ jobs:
           context: worker
           platforms: linux/amd64
           push: true
+          secrets: |
+            hf_token=${{ secrets.HF_TOKEN }}
           tags: |
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ github.sha }}
